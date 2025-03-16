@@ -1,19 +1,23 @@
 {
   "name": "weather-api",
   "version": "1.0.0",
-  "description": "",
+  "description": "This project is a Node.js API that stores user emails and locations, fetches weather data using OpenWeatherMap, and sends automated weather reports every 3 hours via email. It uses MongoDB for data storage, integrates OpenAI for weather summaries, and supports location-based city name retrieval. Deployable on Vercel.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node src/app.js",
+    "dev": "nodemon src/app.js"
   },
   "keywords": [],
-  "author": "",
+  "author": "Ravindu Wickramage",
   "license": "ISC",
   "dependencies": {
     "axios": "^1.8.3",
+    "bcryptjs": "^3.0.2",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "express-validator": "^7.2.1",
+    "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.12.1",
     "node-cron": "^3.0.3",
     "nodemailer": "^6.10.0",
