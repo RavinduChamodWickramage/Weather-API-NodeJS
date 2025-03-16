@@ -4,67 +4,36 @@ const AppError = require("../utils/appError");
 const { getWeatherData } = require("../services/weatherService");
 
 const getUserWeatherData = asyncHandler(async (req, res, next) => {
-  const dateParam = req.query.date;
+  const user = await User.findById(req.user._id);
+  if (!user) return next(new AppError("User not found", 404));
 
-  let query = { _id: req.user._id };
-
-  if (dateParam) {
-    const targetDate = new Date(dateParam);
+  if (req.query.date) {
+    const targetDate = new Date(req.query.date);
     targetDate.setHours(0, 0, 0, 0);
-
     const nextDay = new Date(targetDate);
     nextDay.setDate(nextDay.getDate() + 1);
 
-    const user = await User.findById(req.user._id);
-
-    if (!user) {
-      return next(new AppError("User not found", 404));
-    }
-
-    const filteredWeatherData = user.weatherData.filter((data) => {
-      const dataDate = new Date(data.date);
-      return dataDate >= targetDate && dataDate < nextDay;
-    });
-
-    res.json({
-      success: true,
-      data: filteredWeatherData,
-    });
-  } else {
-    const user = await User.findById(req.user._id);
-
-    if (!user) {
-      return next(new AppError("User not found", 404));
-    }
-
-    res.json({
-      success: true,
-      data: user.weatherData,
-    });
+    const filteredData = user.weatherData.filter(
+      (data) => data.date >= targetDate && data.date < nextDay
+    );
+    return res.json({ success: true, data: filteredData });
   }
+
+  res.json({ success: true, data: user.weatherData });
 });
 
 const getCurrentWeather = asyncHandler(async (req, res, next) => {
   const user = await User.findById(req.user._id);
+  if (!user) return next(new AppError("User not found", 404));
 
-  if (!user) {
-    return next(new AppError("User not found", 404));
-  }
-
-  const { lat, lon } = {
-    lat: user.location.coordinates[1],
-    lon: user.location.coordinates[0],
-  };
-
+  const [lon, lat] = user.location.coordinates;
   const weatherData = await getWeatherData(lat, lon);
 
-  res.json({
-    success: true,
-    data: weatherData,
+  await User.findByIdAndUpdate(user._id, {
+    $push: { weatherData: weather },
   });
+
+  res.json({ success: true, data: weatherData });
 });
 
-module.exports = {
-  getUserWeatherData,
-  getCurrentWeather,
-};
+module.exports = { getUserWeatherData, getCurrentWeather };

@@ -4,49 +4,37 @@ const AppError = require("../utils/appError");
 const getLocationDetails = async (latitude, longitude) => {
   try {
     const response = await axios.get(
-      `https://maps.googleapis.com/maps/api/geocode/json`,
+      "http://api.openweathermap.org/geo/1.0/reverse",
       {
         params: {
-          latlng: `${latitude},${longitude}`,
-          key: process.env.GOOGLE_MAPS_API_KEY,
+          lat: latitude,
+          lon: longitude,
+          limit: 1,
+          appid: process.env.OPENWEATHER_API_KEY,
         },
       }
     );
 
-    if (response.data.status !== "OK") {
-      throw new Error("Failed to get location details");
+    if (!response.data || response.data.length === 0) {
+      return {
+        cityName: "Unknown",
+        country: "Unknown",
+        formattedAddress: "Unknown location",
+      };
     }
 
-    let cityName = "Unknown";
-    let country = "";
-
-    if (response.data.results && response.data.results.length > 0) {
-      const addressComponents = response.data.results[0].address_components;
-
-      for (const component of addressComponents) {
-        if (component.types.includes("locality")) {
-          cityName = component.long_name;
-        }
-        if (component.types.includes("country")) {
-          country = component.long_name;
-        }
-      }
-
-      if (cityName === "Unknown") {
-        for (const component of addressComponents) {
-          if (component.types.includes("administrative_area_level_1")) {
-            cityName = component.long_name;
-            break;
-          }
-        }
-      }
-    }
+    const locationData = response.data[0];
 
     return {
-      cityName,
-      country,
-      formattedAddress:
-        response.data.results[0]?.formatted_address || "Unknown location",
+      cityName: locationData.name || "Unknown",
+      country: locationData.country || "Unknown",
+      formattedAddress: [
+        locationData.name,
+        locationData.state,
+        locationData.country,
+      ]
+        .filter(Boolean)
+        .join(", "),
     };
   } catch (error) {
     console.error("Error getting location details:", error);
