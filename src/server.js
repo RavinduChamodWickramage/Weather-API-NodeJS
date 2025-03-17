@@ -3,6 +3,8 @@ const app = require("./app");
 const connectDB = require("./config/db");
 const scheduleWeatherJob = require("./jobs/weatherJob");
 
+console.log("Starting server...");
+
 connectDB();
 
 scheduleWeatherJob();
