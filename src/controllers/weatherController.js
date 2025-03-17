@@ -30,7 +30,7 @@ const getCurrentWeather = asyncHandler(async (req, res, next) => {
   const weatherData = await getWeatherData(lat, lon);
 
   await User.findByIdAndUpdate(user._id, {
-    $push: { weatherData: weather },
+    $push: { weatherData: weatherData },
   });
 
   res.json({ success: true, data: weatherData });

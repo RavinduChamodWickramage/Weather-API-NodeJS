@@ -1,7 +1,7 @@
 const cron = require("node-cron");
 const User = require("../models/User");
 const { getWeatherData } = require("../services/weatherService");
-const { generateWeatherInsight } = require("../services/openaiService");
+const { generateWeatherReport } = require("../services/openaiService");
 const { sendWeatherEmail } = require("../services/mailService");
 
 const scheduleWeatherJob = () => {
@@ -14,15 +14,15 @@ const scheduleWeatherJob = () => {
 
       for (const user of users) {
         try {
-          const [lat, lon] = user.location.coordinates.reverse();
-          const weather = await getWeatherData(lat, lon);
-          const insight = await generateWeatherInsight(weather);
+          const [lon, lat] = user.location.coordinates; // No need to reverse
+          const weatherData = await getWeatherData(lat, lon);
+          const insight = await generateWeatherReport(weatherData);
 
           await User.findByIdAndUpdate(user._id, {
-            $push: { weatherData: { ...weather, aiDescription: insight } },
+            $push: { weatherData: { ...weatherData, aiDescription: insight } },
           });
 
-          await sendWeatherEmail(user, weather, insight);
+          await sendWeatherEmail(user, weatherData, insight);
           console.log(`Processed user ${user.email}`);
         } catch (userError) {
           console.error(`Failed user ${user.email}:`, userError.message);
