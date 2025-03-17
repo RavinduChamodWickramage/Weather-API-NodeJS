@@ -16,10 +16,10 @@ const protect = asyncHandler(async (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findById(decoded.id).select("+active");
+    const user = await User.findById(decoded.id);
 
-    if (!user?.active) {
-      return next(new AppError("User account is disabled", 401));
+    if (!user) {
+      return next(new AppError("User not found", 401));
     }
 
     req.user = user;
