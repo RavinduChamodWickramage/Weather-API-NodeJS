@@ -14,15 +14,16 @@ const scheduleWeatherJob = () => {
 
       for (const user of users) {
         try {
-          const [lon, lat] = user.location.coordinates; // No need to reverse
-          const weatherData = await getWeatherData(lat, lon);
-          const insight = await generateWeatherReport(weatherData);
+          const coordinates = [...user.location.coordinates];
+          const [lon, lat] = coordinates;
+          const weather = await getWeatherData(lat, lon);
+          const insight = await generateWeatherReport(weather);
 
           await User.findByIdAndUpdate(user._id, {
-            $push: { weatherData: { ...weatherData, aiDescription: insight } },
+            $push: { weatherData: { ...weather, aiDescription: insight } },
           });
 
-          await sendWeatherEmail(user, weatherData, insight);
+          await sendWeatherEmail(user, weather, insight);
           console.log(`Processed user ${user.email}`);
         } catch (userError) {
           console.error(`Failed user ${user.email}:`, userError.message);
